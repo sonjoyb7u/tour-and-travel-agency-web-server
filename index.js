@@ -1,5 +1,6 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const ObjectId = require('mongodb').ObjectId;
 // Include Environment Variable ...
 require('dotenv').config();
 // Connect to Server + React Application(Client) ...
@@ -46,7 +47,85 @@ async function run() {
             const findTourPackage = tourPackageCollection.find(query);
             const tourPackage = await findTourPackage.toArray();
             res.send(tourPackage)
+        });
+
+        // Client Tour Booking Item Detail API Use GET ... 
+        app.get('/tour-booking/detail/:id', async (req, res) => {
+            const tourPackageId = req.params.id;
+            const query = { _id: ObjectId(tourPackageId) };
+            const tourPackage = await tourPackageCollection.findOne(query);
+            // console.log(tourPackage);
+            res.json(tourPackage);
+
+        });
+
+        // Set Order Booking API Use POST(Client) ... 
+        app.post('/order-placed', async (req, res) => {
+            const orderPlacedForm = req.body;
+            // console.log(orderPlacedForm);
+            const result = await orderBookingCollection.insertOne(orderPlacedForm);
+            res.json(result);
+
+        });
+
+
+        //Read All Booking Orders Get API ... 
+        app.get('/all-booking-orders', async (req, res) => {
+            const findOrders = orderBookingCollection.find({});
+            const services = await findOrders.toArray();
+            res.send(services)
+        });
+
+        // Read/Show Single Booking Order Detail Get API ... 
+        app.get('/booking-order/detail/:id', async (req, res) => {
+            // console.log(req.params.id);
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const orderBookDetail = await orderBookingCollection.findOne(query);
+            res.json(orderBookDetail);
+        });
+
+        // Update Single Booking Order Data API ... 
+        app.put('/booking-order/update/:id', async (req, res) => {
+            const orderId = req.params.id;
+            const updateFormData = req.body;
+            console.log(updateFormData);
+            const filter = {_id: ObjectId(orderId) }
+            const options = { upsert: true };
+            const updated = await orderBookingCollection.updateOne(filter, updateFormData, options)
+            res.json(updated)
+
+        });
+
+        // Get API Delete/Destroy Tour Booking ... 
+        app.delete('/booking-order/delete/:id', async (req, res) => {
+            // console.log(req.params.id);
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const destroy = await orderBookingCollection.deleteOne(query)
+            console.log(destroy);
+            res.json(destroy)
+        });
+
+        // Use GET Authenticate Client Booking Order Items API... 
+        app.get('/user-booking-order/:email', async (req, res) => {
+            const userEmail = req.params.email;
+            console.log(userEmail);
+            const query = {email: userEmail}
+            const myOrders = await orderBookingCollection.find(query).toArray();
+            res.json(myOrders);
+
         })
+
+        // Get API Delete/Destroy Client Booking Order Items ... 
+        app.delete('/user-booking-order/delete/:id', async (req, res) => {
+            // console.log(req.params.id);
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const destroy = await orderBookingCollection.deleteOne(query);
+            res.json(destroy);
+
+        });
 
 
     } 
